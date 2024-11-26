@@ -1,6 +1,6 @@
 from transformers import Trainer
 from .model import EmbeddingModel, EmbeddingModel4Qwen, EmbeddingModel4Qwen2
-from typing import Optional
+from typing import Optional, List
 import torch
 import os
 
@@ -9,9 +9,22 @@ class HzTrainer(Trainer):
     def compute_loss(
         self,
         model: EmbeddingModel | EmbeddingModel4Qwen | EmbeddingModel4Qwen2,
-        inputs,
+        inputs: dict[str, List[str]],
         **kwargs,
     ):
+        """
+        Calculate the constractive loss for the model, which is defined as:
+            For each query, minimize the margin between the cosine similarity of the query and positive example and the cosine similarity of the query and negative example.
+            The loss is calculated as:
+                # ! view the margin as probability, then calculate the cross entropy loss(BCE loss)
+                -\sum_{query} \sum_{neg} \log( sigmoid( similarity(query, pos) - similarity(query, neg)))
+         
+        Args:
+            model: The model to train
+            inputs: The inputs to the model, in this case, the query, positive and negative examples
+            kwargs: Additional keyword arguments
+            
+        """
         query = inputs["query"]
         pos = inputs["pos"]
         neg = inputs["neg"]
@@ -35,10 +48,13 @@ class HzTrainer(Trainer):
                 max_len=self.args.passage_max_len,
             )
 
+        # [batch_size, embedding_dim] -> [batch_size]
         sim_pos_vector = torch.cosine_similarity(
             text_embeddings, text_pos_embeddings, dim=-1
         )
         sim_pos_vector = sim_pos_vector / self.args.temperature
+        
+        # [batch_size, embedding_dim] -> [batch_size, batch_size]
         sim_neg_matrix = torch.cosine_similarity(
             text_embeddings.unsqueeze(1),
             text_neg_embeddings.unsqueeze(0),

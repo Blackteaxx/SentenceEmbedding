@@ -17,11 +17,8 @@ class EmbeddingModel(nn.Module):
         self.model = AutoModel.from_pretrained(self.model_name_or_path)
 
         if self.device == "cuda":
-            self.model.to("cuda")
+            self.model = self.model.cuda()
             
-        
-        
-
     def forward(
         self,
         text: List[str],
@@ -38,9 +35,12 @@ class EmbeddingModel(nn.Module):
             return_tensors="pt",
         )
         if self.device == "cuda":
-            for i in tokenizer_output.keys():
-                tokenizer_output[i] = tokenizer_output[i].cuda()
+            for key in tokenizer_output.keys():
+                tokenizer_output[key] = tokenizer_output[key].cuda()
+        
         model_output = self.model(**tokenizer_output)
+
+        # [CLS] token as the pooled output
         embedding_value = model_output.last_hidden_state[:, 0]
         return embedding_value
 

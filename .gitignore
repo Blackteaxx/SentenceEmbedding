@@ -160,8 +160,13 @@ cython_debug/
 .idea/
 tutorial/model/
 tutorial/model/*
-/model/Q*
-data/*
 cache*
 modeloutput/*
 modeloutput
+.vscode/
+.vscode/*
+cache_data/
+cache_data/*
+
+# models
+model/*

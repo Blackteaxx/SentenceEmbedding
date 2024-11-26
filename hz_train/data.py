@@ -15,6 +15,7 @@ from .arguments import ModelDataarguments
 class TrainDatasetForEmbedding(Dataset):
     def __init__(self, args: ModelDataarguments):
         if os.path.isdir(args.data_dir):
+            # combine all the datasets in the directory
             train_datasets = []
             for file in os.listdir(args.data_dir):
                 temp_dataset = datasets.load_dataset(
@@ -31,19 +32,17 @@ class TrainDatasetForEmbedding(Dataset):
                 "json", data_files=args.train_data, split="train"
             )
 
-        # self.tokenizer = tokenizer
         self.args = args
         self.total_len = len(self.dataset)
 
     def __len__(self):
         return self.total_len
 
-    def __getitem__(self, item) -> dict[str, str]:
+    def __getitem__(self, item: int) -> dict[str, str]:
+        # Triplets, only support one positive and one negative example
         query = self.dataset[item]["query"]
         pos = self.dataset[item]["pos"][0]
         neg = self.dataset[item]["neg"][0]
-        # pos = random.choice(self.dataset[item]["pos"])
-        # neg = random.choice(self.dataset[item]["neg"])
 
         res = {"query": query, "pos": pos, "neg": neg}
         return res

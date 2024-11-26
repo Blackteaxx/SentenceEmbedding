@@ -27,4 +27,3 @@
 
 1. 如果是使用类似于bert的模型，参考`hz_run_embedding.sh`脚本，进行训练
 2. 如果是使用类似于llama的模型，参考`hz_run_embedding_qwen.sh`脚本，进行训练
-
