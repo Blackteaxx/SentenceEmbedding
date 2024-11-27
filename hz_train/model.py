@@ -17,7 +17,7 @@ class EmbeddingModel(nn.Module):
         self.model = AutoModel.from_pretrained(self.model_name_or_path)
 
         if self.device == "cuda":
-            self.model = self.model.cuda()
+            self.model.cuda() # The operation is in-place
             
     def forward(
         self,

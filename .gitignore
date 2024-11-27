@@ -163,10 +163,14 @@ tutorial/model/*
 cache*
 modeloutput/*
 modeloutput
-.vscode/
-.vscode/*
 cache_data/
 cache_data/*
+.vscode/*
+.vscode/
+
+# data文件夹除了sample文件夹下的文件，其他都不上传
+data/*
+!data/sample
 
 # models
 model/*

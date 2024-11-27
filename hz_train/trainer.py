@@ -17,7 +17,7 @@ class HzTrainer(Trainer):
             For each query, minimize the margin between the cosine similarity of the query and positive example and the cosine similarity of the query and negative example.
             The loss is calculated as:
                 # ! view the margin as probability, then calculate the cross entropy loss(BCE loss)
-                -\sum_{query} \sum_{neg} \log( sigmoid( similarity(query, pos) - similarity(query, neg)))
+                -\sum_{query} \sum_{neg} \log( sigmoid( similarity(query, pos/query) - similarity(query, neg)))
          
         Args:
             model: The model to train
@@ -65,6 +65,7 @@ class HzTrainer(Trainer):
         loss = -torch.log(torch.sigmoid(sim_diff_matrix)).mean()
         return loss
 
+    
     def _save(self, output_dir: Optional[str] = None, state_dict=None):
         output_dir = output_dir if output_dir is not None else self.args.output_dir
         os.makedirs(output_dir, exist_ok=True)

@@ -19,7 +19,6 @@ from hz_train.trainer import HzTrainer
 
 logger = logging.getLogger(__name__)
 
-
 def main():
     parser = HfArgumentParser((ModelDataarguments, HzTrainArguments))
     modeldata_args, training_args = parser.parse_args_into_dataclasses()
@@ -31,6 +30,7 @@ def main():
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
         level=logging.INFO if training_args.local_rank in [-1, 0] else logging.WARN,
+        filename="train.log", filemode="w"
     )
     logger.warning(
         "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s, 16-bits training: %s",

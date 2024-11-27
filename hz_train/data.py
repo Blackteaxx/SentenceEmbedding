@@ -29,8 +29,14 @@ class TrainDatasetForEmbedding(Dataset):
             self.dataset = datasets.concatenate_datasets(train_datasets)
         else:
             self.dataset = datasets.load_dataset(
-                "json", data_files=args.train_data, split="train"
+                "json", data_files=args.data_dir, split="train"
             )
+            if args.kfold > 1:
+                # use the fold column to split the dataset
+                self.dataset = self.dataset.filter(
+                    lambda x: x["fold"] != 4, cache_file_name="fold4_removed"
+                )
+                
 
         self.args = args
         self.total_len = len(self.dataset)
@@ -52,7 +58,7 @@ class HzEmbeddingCollator:
     def __init__(self) -> None:
         pass
 
-    def __call__(self, features) -> dict[str, List[str]]:
+    def __call__(self, features: List[dict[str, str]]) -> dict[str, List[str]]:
         query = []
         pos = []
         neg = []
