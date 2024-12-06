@@ -1,6 +1,10 @@
 import logging
-import os
-import debugpy
+
+from hz_train.arguments import HzTrainArguments, ModelDataarguments
+from hz_train.data import HzEmbeddingCollator, TrainDatasetForEmbedding
+from hz_train.model import EmbeddingModel, EmbeddingModel4Qwen2
+from hz_train.trainer import HzTrainer
+from transformers import HfArgumentParser
 
 # try:
 #     # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
@@ -10,14 +14,9 @@ import debugpy
 # except Exception as e:
 #     pass
 
-from transformers import HfArgumentParser
-
-from hz_train.arguments import HzTrainArguments, ModelDataarguments
-from hz_train.data import HzEmbeddingCollator, TrainDatasetForEmbedding
-from hz_train.model import EmbeddingModel, EmbeddingModel4Qwen2
-from hz_train.trainer import HzTrainer
 
 logger = logging.getLogger(__name__)
+
 
 def main():
     parser = HfArgumentParser((ModelDataarguments, HzTrainArguments))
@@ -30,7 +29,8 @@ def main():
         format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
         level=logging.INFO if training_args.local_rank in [-1, 0] else logging.WARN,
-        filename="train.log", filemode="w"
+        filename="train.log",
+        filemode="w",
     )
     logger.warning(
         "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s, 16-bits training: %s",

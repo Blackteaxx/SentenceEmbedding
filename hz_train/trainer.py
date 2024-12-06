@@ -1,8 +1,10 @@
-from transformers import Trainer
-from .model import EmbeddingModel, EmbeddingModel4Qwen, EmbeddingModel4Qwen2
-from typing import Optional, List
-import torch
 import os
+from typing import List, Optional
+
+import torch
+from transformers import Trainer
+
+from .model import EmbeddingModel, EmbeddingModel4Qwen, EmbeddingModel4Qwen2
 
 
 class HzTrainer(Trainer):
@@ -18,12 +20,12 @@ class HzTrainer(Trainer):
             The loss is calculated as:
                 # ! view the margin as probability, then calculate the cross entropy loss(BCE loss)
                 -\sum_{query} \sum_{neg} \log( sigmoid( similarity(query, pos/query) - similarity(query, neg)))
-         
+
         Args:
             model: The model to train
             inputs: The inputs to the model, in this case, the query, positive and negative examples
             kwargs: Additional keyword arguments
-            
+
         """
         query = inputs["query"]
         pos = inputs["pos"]
@@ -31,7 +33,9 @@ class HzTrainer(Trainer):
 
         text_embeddings = model(query, max_len=self.args.query_max_len)
 
-        if self.args.embedding_model_name == "qwen2":#isinstance(model, EmbeddingModel4Qwen2) or
+        if (
+            self.args.embedding_model_name == "qwen2"
+        ):  # isinstance(model, EmbeddingModel4Qwen2) or
             text_pos_embeddings = model(
                 pos, max_len=self.args.passage_max_len, is_query=False
             )
@@ -53,7 +57,7 @@ class HzTrainer(Trainer):
             text_embeddings, text_pos_embeddings, dim=-1
         )
         sim_pos_vector = sim_pos_vector / self.args.temperature
-        
+
         # [batch_size, embedding_dim] -> [batch_size, batch_size]
         sim_neg_matrix = torch.cosine_similarity(
             text_embeddings.unsqueeze(1),
@@ -61,11 +65,20 @@ class HzTrainer(Trainer):
             dim=-1,
         )
         sim_neg_matrix = sim_neg_matrix / self.args.temperature
-        sim_diff_matrix = sim_pos_vector.unsqueeze(1) - sim_neg_matrix
-        loss = -torch.log(torch.sigmoid(sim_diff_matrix)).mean()
+        # sim_diff_matrix = sim_pos_vector.unsqueeze(1) - sim_neg_matrix
+        # loss = -torch.log(torch.sigmoid(sim_diff_matrix)).mean()
+
+        # What happens when we use infoNCE loss?
+        sim_diff_matrix = torch.cat(
+            [sim_pos_vector.unsqueeze(1), sim_neg_matrix], dim=1
+        )
+        labels = torch.zeros(sim_diff_matrix.size(0), dtype=torch.long).to(
+            sim_diff_matrix.device
+        )
+        loss = torch.nn.CrossEntropyLoss()(sim_diff_matrix, labels)
+
         return loss
 
-    
     def _save(self, output_dir: Optional[str] = None, state_dict=None):
         output_dir = output_dir if output_dir is not None else self.args.output_dir
         os.makedirs(output_dir, exist_ok=True)

@@ -1,7 +1,6 @@
 from typing import List, Tuple
 
 import torch
-import torch.nn.functional as F
 from torch import Tensor, nn
 from transformers import AutoModel, AutoTokenizer, GenerationConfig, PreTrainedTokenizer
 
@@ -11,14 +10,13 @@ class EmbeddingModel(nn.Module):
         super(EmbeddingModel, self).__init__()
         self.model_name_or_path = model_name_or_path
         self.device = device
-        # self.max_len = max_len
 
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name_or_path)
         self.model = AutoModel.from_pretrained(self.model_name_or_path)
 
         if self.device == "cuda":
-            self.model.cuda() # The operation is in-place
-            
+            self.model.cuda()  # The operation is in-place
+
     def forward(
         self,
         text: List[str],
@@ -37,7 +35,7 @@ class EmbeddingModel(nn.Module):
         if self.device == "cuda":
             for key in tokenizer_output.keys():
                 tokenizer_output[key] = tokenizer_output[key].cuda()
-        
+
         model_output = self.model(**tokenizer_output)
 
         # [CLS] token as the pooled output
@@ -57,8 +55,6 @@ def build_source_text(x: str, tokenizer) -> str:
         messages, tokenize=False, add_generation_prompt=True
     )
     return text
-
-
 
 
 class EmbeddingModel4Qwen2(nn.Module):
@@ -126,7 +122,6 @@ class EmbeddingModel4Qwen2(nn.Module):
                 batch_raw_text = [all_raw_text]
             else:
                 batch_raw_text = all_raw_text
-            
 
         max_length = max_len if max_len is not None else self.max_length
         # Tokenize the input texts
@@ -173,7 +168,7 @@ class EmbeddingModel4Qwen2(nn.Module):
 
 
 class EmbeddingModel4Qwen(nn.Module):
-    #copy from https://huggingface.co/intfloat/e5-mistral-7b-instruct
+    # copy from https://huggingface.co/intfloat/e5-mistral-7b-instruct
     def __init__(
         self, model_name_or_path: str, device: str = "cuda", max_length: int = 4096
     ) -> None:
@@ -203,10 +198,10 @@ class EmbeddingModel4Qwen(nn.Module):
         self,
         text: List[str],
         max_len: int = None,
-        is_query:bool=True,
+        is_query: bool = True,
     ):
         all_raw_text = text
-        
+
         if is_query:
             batch_raw_text = []
             for q in all_raw_text:

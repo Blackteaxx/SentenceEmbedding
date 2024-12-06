@@ -22,6 +22,12 @@
 {"query": str, "pos": List[str], "neg": List[str]}
 ```
 
+如果是图片数据，参考如下数据要求
+
+```json
+{"query_img_dir": str, "pos_img_dir": List[str], "neg_img_dir": List[str]}
+```
+
 
 #### 开始训练
 

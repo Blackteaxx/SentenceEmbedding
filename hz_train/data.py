@@ -1,14 +1,9 @@
-import math
 import os.path
-import random
-from dataclasses import dataclass
-from typing import Any, List, Tuple
+from typing import List
 
 import datasets
 from torch.utils.data import Dataset
-from transformers import DataCollatorWithPadding
-from transformers import PreTrainedTokenizer, BatchEncoding
-from itertools import chain
+
 from .arguments import ModelDataarguments
 
 
@@ -31,12 +26,6 @@ class TrainDatasetForEmbedding(Dataset):
             self.dataset = datasets.load_dataset(
                 "json", data_files=args.data_dir, split="train"
             )
-            if args.kfold > 1:
-                # use the fold column to split the dataset
-                self.dataset = self.dataset.filter(
-                    lambda x: x["fold"] != 4, cache_file_name="fold4_removed"
-                )
-                
 
         self.args = args
         self.total_len = len(self.dataset)
