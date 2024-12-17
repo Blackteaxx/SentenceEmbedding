@@ -2,6 +2,7 @@ import os.path
 from typing import List
 
 import datasets
+import numpy as np
 from torch.utils.data import Dataset
 
 from .arguments import ModelDataarguments
@@ -36,8 +37,12 @@ class TrainDatasetForEmbedding(Dataset):
     def __getitem__(self, item: int) -> dict[str, str]:
         # Triplets, only support one positive and one negative example
         query = self.dataset[item]["query"]
-        pos = self.dataset[item]["pos"][0]
-        neg = self.dataset[item]["neg"][0]
+        # sampling from the positive and negative examples
+        pos_idx = np.random.randint(len(self.dataset[item]["pos"]))
+        neg_idx = np.random.randint(len(self.dataset[item]["neg"]))
+
+        pos = self.dataset[item]["pos"][pos_idx]
+        neg = self.dataset[item]["neg"][neg_idx]
 
         res = {"query": query, "pos": pos, "neg": neg}
         return res

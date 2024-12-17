@@ -79,7 +79,7 @@ class EmbeddingModel4Qwen2(nn.Module):
         #     model_name_or_path, pad_token_id=self.tokenizer.pad_token_id
         # )
         if self.device == "cuda":
-            self.model.to("cuda")
+            self.model.cuda()
 
         # if True:  # model_args.use_lora:
         #     # logging.warning("Loading model to Lora")
@@ -140,10 +140,8 @@ class EmbeddingModel4Qwen2(nn.Module):
         batch_dict = self.tokenizer.pad(
             batch_dict, padding=True, return_attention_mask=True, return_tensors="pt"
         )
-        # batch_dict.pop("token_type_ids")
 
-        for tempkey in batch_dict.keys():
-            batch_dict[tempkey] = batch_dict[tempkey].to(self.model.device)
+        batch_dict = self._batch_to_device(batch_dict)
 
         modeloutput = self.model(**batch_dict)
 
@@ -151,6 +149,12 @@ class EmbeddingModel4Qwen2(nn.Module):
             modeloutput.last_hidden_state, batch_dict["attention_mask"]
         )
         return embeddings
+
+    def _batch_to_device(self, batch):
+        for key in batch.keys():
+            if isinstance(batch[key], torch.Tensor):
+                batch[key] = batch[key].to(self.device)
+        return batch
 
     def last_token_pool(
         self, last_hidden_states: Tensor, attention_mask: Tensor
